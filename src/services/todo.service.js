@@ -30,9 +30,11 @@ export const getTodoDetails = async (req, res, next) => {
     const todo = await pool.query("SELECT * FROM todo WHERE todo_id = $1;", [
       todoId,
     ]);
+
     if (todo.rows.length === 0) {
       return res.status(404).json("Todo Not Found!");
     }
+
     res.status(200).json(todo.rows[0]);
   } catch (error) {
     res.status(500);
@@ -47,9 +49,18 @@ export const getTodoDetails = async (req, res, next) => {
 // AUTH:    Public
 export const createTodo = async (req, res, next) => {
   try {
+    const {
+      description,
+      due_date,
+      assigned_to,
+      is_complete,
+      is_important,
+      title,
+    } = req.body;
+
     const newTodo = await pool.query(
-      "INSERT INTO todo(description) VALUES($1) RETURNING *;",
-      [req.body.description]
+      "INSERT INTO todo(description, due_date, assigned_to, is_complete, is_important, title) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;",
+      [description, due_date, assigned_to, is_complete, is_important, title]
     );
     console.log(newTodo);
     res.status(200).send(newTodo.rows[0]);
@@ -67,10 +78,34 @@ export const createTodo = async (req, res, next) => {
 export const updateTodo = async (req, res, next) => {
   try {
     const todoId = req.params.todo_id;
-    await pool.query("UPDATE todo SET description = $1 WHERE todo_id = $2", [
-      req.body.description,
+    const {
+      description,
+      due_date,
+      assigned_to,
+      is_complete,
+      is_important,
+      title,
+    } = req.body;
+
+    const todo = await pool.query("SELECT * FROM todo WHERE todo_id = $1", [
       todoId,
     ]);
+    if (todo.rowCount === 0) {
+      return res.status(404).json("Todo not found");
+    }
+
+    await pool.query(
+      "UPDATE todo SET description = $2, due_date = $3, assigned_to = $4, is_complete = $5, is_important = $6, title = $7 WHERE todo_id = $1",
+      [
+        todoId,
+        description ? description : todo.rows[0].description,
+        due_date ? due_date : todo.rows[0].due_date,
+        assigned_to ? assigned_to : todo.rows[0].assigned_to,
+        is_complete ? is_complete : todo.rows[0].is_complete,
+        is_important ? is_important : todo.rows[0].is_important,
+        title ? title : todo.rows[0].title,
+      ]
+    );
     res.status(200).json("Todo was updated!");
   } catch (error) {
     res.status(500);
