@@ -1,6 +1,6 @@
 import { pool } from "../database.js";
 
-// TITLE:   Get All Todos
+// DESC:    Get All Todos
 // METHOD:  GET
 // ROUTE:   /getAllTodos
 // AUTH:    Public
@@ -20,7 +20,7 @@ export const getAllTodos = async (req, res, next) => {
   }
 };
 
-// TITLE:   Get single Todo
+// DESC:    Get single Todo
 // METHOD:  GET
 // ROUTE:   /:todo_id
 // AUTH:    Public
@@ -43,7 +43,7 @@ export const getTodoDetails = async (req, res, next) => {
   }
 };
 
-// TITLE:   Create Todo
+// DESC:    Create Todo
 // METHOD:  POST
 // ROUTE:   /createTodo
 // AUTH:    Public
@@ -56,13 +56,21 @@ export const createTodo = async (req, res, next) => {
       is_complete,
       is_important,
       title,
+      tag_id,
     } = req.body;
 
     const newTodo = await pool.query(
-      "INSERT INTO todo(description, due_date, assigned_to, is_complete, is_important, title) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;",
-      [description, due_date, assigned_to, is_complete, is_important, title]
+      "INSERT INTO todo(description, due_date, assigned_to, is_complete, is_important, title, tag_id) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
+      [
+        description,
+        due_date,
+        assigned_to,
+        is_complete,
+        is_important,
+        title,
+        tag_id,
+      ]
     );
-    console.log(newTodo);
     res.status(200).send(newTodo.rows[0]);
   } catch (error) {
     res.status(500);
@@ -71,7 +79,7 @@ export const createTodo = async (req, res, next) => {
   }
 };
 
-// TITLE:   Update Todo
+// DESC:    Update Todo
 // METHOD:  PUT
 // ROUTE:   /updateTodo/:todo_id
 // AUTH:    Public
@@ -85,6 +93,7 @@ export const updateTodo = async (req, res, next) => {
       is_complete,
       is_important,
       title,
+      tag_id,
     } = req.body;
 
     const todo = await pool.query("SELECT * FROM todo WHERE todo_id = $1", [
@@ -95,7 +104,7 @@ export const updateTodo = async (req, res, next) => {
     }
 
     await pool.query(
-      "UPDATE todo SET description = $2, due_date = $3, assigned_to = $4, is_complete = $5, is_important = $6, title = $7 WHERE todo_id = $1",
+      "UPDATE todo SET description = $2, due_date = $3, assigned_to = $4, is_complete = $5, is_important = $6, title = $7, tag_id = $8 WHERE todo_id = $1",
       [
         todoId,
         description ? description : todo.rows[0].description,
@@ -104,6 +113,7 @@ export const updateTodo = async (req, res, next) => {
         is_complete ? is_complete : todo.rows[0].is_complete,
         is_important ? is_important : todo.rows[0].is_important,
         title ? title : todo.rows[0].title,
+        tag_id ? tag_id : todo.rows[0].tag_id,
       ]
     );
     res.status(200).json("Todo was updated!");
@@ -113,7 +123,7 @@ export const updateTodo = async (req, res, next) => {
   }
 };
 
-// TITLE:   Delete Todo
+// DESC:    Delete Todo
 // METHOD:  DELETE
 // ROUTE:   /removeTodo/:todo_id
 // AUTH:    Public

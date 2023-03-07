@@ -4,11 +4,13 @@ CREATE TABLE tag (
     tag_color VARCHAR(100)
 );
 
+INSERT INTO tag(tag_id, label, tag_color) VALUES
+(1, 'Small', '#4cff33'),
+(2, 'Medium', '#f9ff33'),
+(3, 'Large', '#ffb233'),
+(4, 'X-Large', '#f33835')
+RETURNING *;
+
 
 ALTER TABLE todo
-ADD COLUMN assigned_to VARCHAR(100),
-ADD COLUMN due_date DATE,
-ADD COLUMN is_complete BOOLEAN,
-ADD COLUMN is_important BOOLEAN,
-ADD COLUMN title VARCHAR(100);
-ADD COLUMN tag_id integer[] REFERENCES tag(tag_id);
+ADD COLUMN tag_id BIGINT[];
