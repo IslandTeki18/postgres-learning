@@ -48,9 +48,35 @@ const createUser = async (req, res, next) => {
 // METHOD:  POST
 // ROUTE:   /login
 // AUTH:    Public
-const loginUser = async (req, res, next) => {
+const loginUser = async (req, res) => {
   try {
-  } catch (error) {}
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).send({ message: "Some values are missing" });
+    }
+    if (!Helper.isValidEmail(email)) {
+      return res
+        .status(400)
+        .send({ message: "Please enter a valid email address" });
+    }
+    const { rows } = await pool.query("SELECT * FROM users WHERE email = $1;", [
+      email,
+    ]);
+    if (!rows[0]) {
+      return res
+        .status(400)
+        .send({ message: "The credentials you provided are incorrect" });
+    }
+    if (!Helper.comparePassword(rows[0].password, password)) {
+      return res
+        .status(400)
+        .send({ message: "The credentials you provided are incorrect" });
+    }
+    const token = Helper.generateToken(rows[0].id);
+    return res.status(200).send({ token });
+  } catch (error) {
+    return res.status(400).send(error.message);
+  }
 };
 
 // DESC:    Logout User
@@ -65,12 +91,10 @@ const loginUser = async (req, res, next) => {
 
 // DESC:    Update User Information
 // METHOD:  PUT
-// ROUTE:   /user/:id/update
-// AUTH:    Private
 
 // DESC:    Delete User
 // METHOD:  DELETE
 // ROUTE:   /user/:id/remove
 // AUTH:    Private
 
-export { createUser };
+export { createUser, loginUser };
