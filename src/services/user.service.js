@@ -72,17 +72,12 @@ const loginUser = async (req, res) => {
         .status(400)
         .send({ message: "The credentials you provided are incorrect" });
     }
-    const token = Helper.generateToken(rows[0].id);
+    const token = Helper.generateToken(rows[0].user_id);
     return res.status(200).send({ token });
   } catch (error) {
     return res.status(400).send(error.message);
   }
 };
-
-// DESC:    Logout User
-// METHOD:  POST
-// ROUTE:   /logout
-// AUTH:    Private
 
 // DESC:    Get User Information
 // METHOD:  GET
@@ -91,10 +86,25 @@ const loginUser = async (req, res) => {
 
 // DESC:    Update User Information
 // METHOD:  PUT
+// ROUTE:   /user/:id
+// AUTH:    Private
 
 // DESC:    Delete User
 // METHOD:  DELETE
 // ROUTE:   /user/:id/remove
 // AUTH:    Private
+const removeUser = async (req, res) => {
+  try {
+    const { rows } = await pool.query("DELETE FROM users WHERE user_id = $1 RETURNING *;", [
+      req.params.id,
+    ]);
+    if (!rows[0]) {
+      return res.status(404).send({ message: "User not found." });
+    }
+    return res.status(204).send({ message: "User deleted." });
+  } catch (error) {
+    return res.status(400).send(error.message);
+  }
+};
 
-export { createUser, loginUser };
+export { createUser, loginUser, removeUser };
