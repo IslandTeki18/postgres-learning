@@ -83,6 +83,20 @@ const loginUser = async (req, res) => {
 // METHOD:  GET
 // ROUTE:   /user/:id
 // AUTH:    Private
+const getUser = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM users WHERE user_id = $1",
+      [req.params.id]
+    );
+    if (!rows[0]) {
+      return res.status(404).send({ message: "No user found." });
+    }
+    return res.status(200).send(rows[0]);
+  } catch (error) {
+    return res.status(400).send({error: error.message})
+  }
+};
 
 // DESC:    Update User Information
 // METHOD:  PUT
@@ -95,9 +109,10 @@ const loginUser = async (req, res) => {
 // AUTH:    Private
 const removeUser = async (req, res) => {
   try {
-    const { rows } = await pool.query("DELETE FROM users WHERE user_id = $1 RETURNING *;", [
-      req.params.id,
-    ]);
+    const { rows } = await pool.query(
+      "DELETE FROM users WHERE user_id = $1 RETURNING *;",
+      [req.params.id]
+    );
     if (!rows[0]) {
       return res.status(404).send({ message: "User not found." });
     }
@@ -107,4 +122,4 @@ const removeUser = async (req, res) => {
   }
 };
 
-export { createUser, loginUser, removeUser };
+export { createUser, loginUser, removeUser, getUser };
